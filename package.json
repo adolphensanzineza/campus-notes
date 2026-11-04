@@ -1,0 +1,28 @@
+{
+  "name": "campus-notes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A small note board for a polytechnic department. DELIBERATELY INSECURE — training use only.",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "sast": "semgrep --config .semgrep/rules.yml --error src/"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "jsonwebtoken": "8.5.1"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

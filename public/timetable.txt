@@ -1,0 +1,4 @@
+Week 3 - ICT Department
+Mon 08:00 Programming I (A11)     Tue 10:00 Databases (A14)
+Wed 08:00 Networking lab (B12)    Thu 14:00 Networking lab (B12)  [moved]
+Fri 10:00 DevOps (B09)

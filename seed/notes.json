@@ -1,0 +1,5 @@
+[
+  { "author": "admin",  "title": "Welcome to Campus Notes", "body": "Post departmental notes here. Everyone in the department can read them." },
+  { "author": "mutesi", "title": "Lab timetable, week 3",   "body": "The networking lab moves to Thursday 14:00. Room B12." },
+  { "author": "kamana", "title": "Marking deadline",        "body": "Continuous-assessment marks are due on the 28th." }
+]

@@ -1,0 +1,108 @@
+rules:
+  - id: campus-notes-sql-string-interpolation
+    languages: [javascript]
+    severity: ERROR
+    message: >-
+      SQL is being built by string interpolation. A username containing a quote
+      changes the meaning of the query. Use a bound parameter: prepare('... = ?').get(value).
+    metadata:
+      cwe: "CWE-89: SQL Injection"
+      confidence: HIGH
+    patterns:
+      - pattern-either:
+          - pattern: $DB.prepare(`...${$X}...`)
+          - pattern: $DB.exec(`...${$X}...`)
+          - pattern: $DB.prepare("..." + $X)
+          - pattern: $DB.exec("..." + $X)
+
+  - id: campus-notes-hardcoded-secret
+    languages: [javascript]
+    severity: ERROR
+    message: >-
+      A credential is hardcoded in the source. Anyone who can read the repository
+      can use it. Read it from the environment and fail closed when it is unset.
+    metadata:
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      confidence: HIGH
+    patterns:
+      - pattern-either:
+          - pattern: const $NAME = "..."
+          - pattern: const $NAME = '...'
+      - metavariable-regex:
+          metavariable: $NAME
+          regex: (?i).*(secret|password|passwd|token|apikey|api_key).*
+
+  - id: campus-notes-weak-password-hash
+    languages: [javascript]
+    severity: ERROR
+    message: >-
+      A digest from crypto.createHash (MD5, SHA-1, SHA-256 or any other algorithm
+      named here) is fast and, used this way, unsalted. A stolen password table is
+      reversible with a wordlist regardless of which digest algorithm was chosen.
+      Use crypto.scrypt with a per-user salt instead of createHash for password
+      storage.
+    metadata:
+      cwe: "CWE-916: Use of Password Hash With Insufficient Computational Effort"
+      confidence: HIGH
+    patterns:
+      - pattern: crypto.createHash($ALG)
+
+  - id: campus-notes-path-traversal
+    languages: [javascript]
+    severity: ERROR
+    message: >-
+      A request value is joined onto a filesystem path with no validation, so ../
+      escapes the intended directory. Reduce it with path.basename and check it
+      against an allowlist.
+    metadata:
+      cwe: "CWE-22: Path Traversal"
+      confidence: HIGH
+    patterns:
+      - pattern-either:
+          - pattern: path.join($DIR, $REQ.query.$P)
+          - pattern: path.join($DIR, String($REQ.query.$P))
+          - pattern: path.join($DIR, $REQ.params.$P)
+          - pattern: |
+              $V = String($REQ.query.$P)
+              ...
+              path.join($DIR, $V)
+          - pattern: |
+              $V = String($REQ.query.$P || $DEF)
+              ...
+              path.join($DIR, $V)
+
+  - id: campus-notes-unescaped-html-interpolation
+    mode: taint
+    languages: [javascript]
+    severity: ERROR
+    message: >-
+      A note field (title, author or body) reaches an HTML sink -- a template
+      literal or the layout() title -- without passing through an escaping call
+      first, so anything a user posts is executed by every reader's browser.
+      Wrap it in an escaping call, e.g. escapeHtml(value), before it is
+      interpolated.
+    metadata:
+      cwe: "CWE-79: Cross-site Scripting"
+      confidence: MEDIUM
+    pattern-sources:
+      - pattern: $OBJ.title
+      - pattern: $OBJ.author
+      - pattern: $OBJ.body
+    pattern-sanitizers:
+      # Any single-argument call whose sole argument IS one of the source
+      # expressions above (not merely a larger expression that happens to
+      # contain one, e.g. a callback passed to .map()) is treated as
+      # sanitising -- the rule recognises "wrapped in a call", not a
+      # specific function name or spelling. Whether that call actually
+      # escapes correctly is a job for xss.test.js, not for Semgrep.
+      - pattern-either:
+          - pattern: $FN($OBJ.title)
+          - pattern: $FN($OBJ.author)
+          - pattern: $FN($OBJ.body)
+    pattern-sinks:
+      - pattern: |
+          `...${$X}...`
+      # layout()'s first argument is interpolated unescaped into <title> in
+      # its own definition; a value reaching it directly is exploitable even
+      # though the interpolation itself is in a different function.
+      - pattern: layout($X, ...)
