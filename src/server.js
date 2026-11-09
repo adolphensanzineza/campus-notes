@@ -21,7 +21,7 @@ function createApp() {
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, '..', 'public')));
-
+  app.use(require('./health.js'));
   app.use(metrics.router);
   app.use(auth.router);
   app.use(filesRouter);
